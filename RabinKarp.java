@@ -1,32 +1,36 @@
+import java.util.*;
+
 public class RabinKarp {
-    static final int PRIME = 101; // Prime for hashing
+    static final int d = 256, q = 101; // d = alphabet size, q = prime
 
-    static void search(String txt, String pat) {
+    static List<Integer> search(String pat, String txt) {
         int m = pat.length(), n = txt.length();
-        int patHash = 0, txtHash = 0, h = 1;
+        int p = 0, t = 0, h = 1;
+        List<Integer> result = new ArrayList<>();
 
-        for (int i = 0; i < m - 1; i++) h = (h * 256) % PRIME; // Hash multiplier
+        for (int i = 0; i < m - 1; i++) h = (h * d) % q;
 
         for (int i = 0; i < m; i++) {
-            patHash = (256 * patHash + pat.charAt(i)) % PRIME;
-            txtHash = (256 * txtHash + txt.charAt(i)) % PRIME;
+            p = (d * p + pat.charAt(i)) % q;
+            t = (d * t + txt.charAt(i)) % q;
         }
 
         for (int i = 0; i <= n - m; i++) {
-            if (patHash == txtHash && txt.substring(i, i + m).equals(pat)) {
-                System.out.println("Pattern found at index: " + i);
+            if (p == t) {
+                if (txt.substring(i, i + m).equals(pat)) result.add(i);
             }
-
             if (i < n - m) {
-                txtHash = (256 * (txtHash - txt.charAt(i) * h) + txt.charAt(i + m)) % PRIME;
-                if (txtHash < 0) txtHash += PRIME;
+                t = (d * (t - txt.charAt(i) * h) + txt.charAt(i + m)) % q;
+                if (t < 0) t += q;
             }
         }
+        return result;
     }
 
     public static void main(String[] args) {
-        String txt = "ABABDABACDABABCABAB";
-        String pat = "ABABCABAB";
-        search(txt, pat);
+        String txt = "abracadabra";
+        String pat = "abra";
+        List<Integer> positions = search(pat, txt);
+        System.out.println("Pattern found at indices: " + positions);
     }
 }
