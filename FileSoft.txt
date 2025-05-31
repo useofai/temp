@@ -1,0 +1,601 @@
+
+import java.util.*;
+
+public class BipartiteCheck {
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1, 3));
+        graph.put(1, Arrays.asList(0, 2));
+        graph.put(2, Arrays.asList(1, 3));
+        graph.put(3, Arrays.asList(0, 2));
+
+        System.out.println(isBipartite(graph) ? "Graph is Bipartite" : "Graph is NOT Bipartite");
+    }
+
+    public static boolean isBipartite(Map<Integer, List<Integer>> graph) {
+        Map<Integer, Integer> color = new HashMap<>();
+
+        for (int node : graph.keySet()) {
+            if (!color.containsKey(node)) {
+                if (!bfsCheck(node, graph, color)) return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean bfsCheck(int start, Map<Integer, List<Integer>> graph, Map<Integer, Integer> color) {
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(start);
+        color.put(start, 0);  // color with 0 or 1
+
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            for (int neighbor : graph.getOrDefault(node, List.of())) {
+                if (!color.containsKey(neighbor)) {
+                    color.put(neighbor, 1 - color.get(node));
+                    queue.add(neighbor);
+                } else if (color.get(neighbor).equals(color.get(node))) {
+                    return false; // same color on both ends of an edge => not bipartite
+                }
+            }
+        }
+        return true;
+    }
+}
+
+
+
+
+import java.util.*;
+
+public class DirectedCycleDetection {
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1));
+        graph.put(1, Arrays.asList(2));
+        graph.put(2, Arrays.asList(0));  // cycle: 0 -> 1 -> 2 -> 0
+        graph.put(3, Arrays.asList(4));
+        graph.put(4, new ArrayList<>());
+
+        System.out.println(hasCycle(graph) ? "Cycle detected" : "No cycle detected");
+    }
+
+    public static boolean hasCycle(Map<Integer, List<Integer>> graph) {
+        Set<Integer> visited = new HashSet<>();
+        Set<Integer> recursionStack = new HashSet<>();
+
+        for (int node : graph.keySet()) {
+            if (!visited.contains(node)) {
+                if (dfs(node, graph, visited, recursionStack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean dfs(int node, Map<Integer, List<Integer>> graph,
+                               Set<Integer> visited, Set<Integer> recStack) {
+        visited.add(node);
+        recStack.add(node);
+
+        for (int neighbor : graph.getOrDefault(node, List.of())) {
+            if (!visited.contains(neighbor)) {
+                if (dfs(neighbor, graph, visited, recStack)) return true;
+            } else if (recStack.contains(neighbor)) {
+                return true;  // cycle found
+            }
+        }
+
+        recStack.remove(node);
+        return false;
+    }
+}
+
+
+
+
+import java.util.*;
+
+public class FindAllPaths {
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1, 2));
+        graph.put(1, Arrays.asList(0, 3));
+        graph.put(2, Arrays.asList(0, 3));
+        graph.put(3, Arrays.asList(1, 2, 4));
+        graph.put(4, Arrays.asList(3));
+
+        int src = 0;
+        int dest = 4;
+
+        List<List<Integer>> allPaths = findAllPaths(graph, src, dest);
+        for (List<Integer> path : allPaths) {
+            System.out.println(path);
+        }
+    }
+
+    public static List<List<Integer>> findAllPaths(Map<Integer, List<Integer>> graph, int src, int dest) {
+        List<List<Integer>> result = new ArrayList<>();
+        List<Integer> currentPath = new ArrayList<>();
+        Set<Integer> visited = new HashSet<>();
+        dfs(graph, src, dest, visited, currentPath, result);
+        return result;
+    }
+
+    private static void dfs(Map<Integer, List<Integer>> graph, int current, int dest,
+                            Set<Integer> visited, List<Integer> currentPath, List<List<Integer>> result) {
+        visited.add(current);
+        currentPath.add(current);
+
+        if (current == dest) {
+            result.add(new ArrayList<>(currentPath));
+        } else {
+            for (int neighbor : graph.getOrDefault(current, new ArrayList<>())) {
+                if (!visited.contains(neighbor)) {
+                    dfs(graph, neighbor, dest, visited, currentPath, result);
+                }
+            }
+        }
+
+        visited.remove(current);
+        currentPath.remove(currentPath.size() - 1);
+    }
+}
+
+
+
+
+import java.util.*;
+
+public class Graph {
+    private int V;
+    private List<List<Integer>> adjList;
+    public Graph(int V) {
+        this.V = V;
+        adjList = new ArrayList<>();
+
+        for (int i = 0; i < V; i++) {
+            adjList.add(new ArrayList<>());
+        }
+    }
+
+    public void addEdge(int u, int v) {
+        adjList.get(u).add(v);
+        adjList.get(v).add(u); 
+    }
+
+
+    private void dfsUtil(int v, boolean[] visited) {
+        visited[v] = true;
+        System.out.print(v + " ");
+
+        for (int neighbor : adjList.get(v)) {
+            if (!visited[neighbor]) {
+                dfsUtil(neighbor, visited);
+            }
+        }
+    }
+
+
+    public void dfs(int start) {
+        boolean[] visited = new boolean[V];
+        System.out.print("DFS starting from node " + start + ": ");
+        dfsUtil(start, visited);
+        System.out.println();
+    }
+
+    public void bfs(int start) {
+        boolean[] visited = new boolean[V];
+        Queue<Integer> queue = new LinkedList<>();
+
+        visited[start] = true;
+        queue.offer(start);
+
+        System.out.print("BFS starting from node " + start + ": ");
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            System.out.print(current + " ");
+
+            for (int neighbor : adjList.get(current)) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    queue.offer(neighbor);
+                }
+            }
+        }
+        System.out.println();
+    }
+    public static void main(String[] args) {
+        Graph g = new Graph(6); // 6 nodes: 0 to 5
+
+        g.addEdge(0, 1);
+        g.addEdge(0, 2);
+        g.addEdge(1, 3);
+        g.addEdge(2, 4);
+        g.addEdge(3, 5);
+
+        g.dfs(0);
+        g.bfs(0);
+    }
+}
+
+
+
+import java.util.*;
+
+public class GraphAlgorithms {
+
+    static class Edge implements Comparable<Edge> {
+        int u, v, w;
+        Edge(int u, int v, int w) { this.u = u; this.v = v; this.w = w; }
+        public int compareTo(Edge e) { return w - e.w; }
+    }
+
+    // --- Prim's MST ---
+    static int prim(List<List<Edge>> graph, int n) {
+        boolean[] visited = new boolean[n];
+        PriorityQueue<Edge> pq = new PriorityQueue<>();
+        pq.add(new Edge(0, 0, 0)); // start from node 0
+        int cost = 0;
+        int edges = 0;
+        while (!pq.isEmpty() && edges < n) {
+            Edge e = pq.poll();
+            if (visited[e.v]) continue;
+            visited[e.v] = true;
+            cost += e.w;
+            edges++;
+            for (Edge ne : graph.get(e.v)) {
+                if (!visited[ne.v]) pq.add(ne);
+            }
+        }
+        return edges == n ? cost : -1; // -1 if MST not possible
+    }
+
+    // --- Kruskal's MST ---
+    static int kruskal(List<Edge> edges, int n) {
+        Collections.sort(edges);
+        int[] parent = new int[n];
+        for (int i = 0; i < n; i++) parent[i] = i;
+
+        int cost = 0, count = 0;
+
+        for (Edge e : edges) {
+            int pu = find(parent, e.u), pv = find(parent, e.v);
+            if (pu != pv) {
+                parent[pu] = pv;
+                cost += e.w;
+                count++;
+                if (count == n - 1) break;
+            }
+        }
+        return count == n - 1 ? cost : -1;
+    }
+
+    static int find(int[] parent, int x) {
+        if (parent[x] != x) parent[x] = find(parent, parent[x]);
+        return parent[x];
+    }
+
+    // --- Dijkstra's shortest path ---
+    static int[] dijkstra(List<List<Edge>> graph, int src, int n) {
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[src] = 0;
+        PriorityQueue<Edge> pq = new PriorityQueue<>((a,b) -> a.w - b.w);
+        pq.add(new Edge(-1, src, 0));
+
+        while (!pq.isEmpty()) {
+            Edge e = pq.poll();
+            int u = e.v;
+            if (e.w > dist[u]) continue;
+            for (Edge ne : graph.get(u)) {
+                if (dist[u] + ne.w < dist[ne.v]) {
+                    dist[ne.v] = dist[u] + ne.w;
+                    pq.add(new Edge(u, ne.v, dist[ne.v]));
+                }
+            }
+        }
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        int n = 5;
+        List<List<Edge>> graph = new ArrayList<>();
+        for (int i = 0; i < n; i++) graph.add(new ArrayList<>());
+
+        // Add undirected edges (u, v, w)
+        int[][] edgesArr = {
+            {0, 1, 2},
+            {0, 3, 6},
+            {1, 2, 3},
+            {1, 3, 8},
+            {1, 4, 5},
+            {2, 4, 7},
+            {3, 4, 9}
+        };
+
+        List<Edge> allEdges = new ArrayList<>();
+        for (int[] e : edgesArr) {
+            graph.get(e[0]).add(new Edge(e[0], e[1], e[2]));
+            graph.get(e[1]).add(new Edge(e[1], e[0], e[2]));
+            allEdges.add(new Edge(e[0], e[1], e[2]));
+        }
+
+        System.out.println("Prim's MST cost: " + prim(graph, n));
+        System.out.println("Kruskal's MST cost: " + kruskal(allEdges, n));
+
+        int[] dist = dijkstra(graph, 0, n);
+        System.out.println("Dijkstra distances from node 0:");
+        for (int i = 0; i < n; i++) System.out.println("Node " + i + ": " + dist[i]);
+    }
+}
+
+
+
+import java.util.*;
+
+public class GraphConnectivity {
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1, 2));
+        graph.put(1, Arrays.asList(0, 3));
+        graph.put(2, Arrays.asList(0));
+        graph.put(3, Arrays.asList(1));
+        // graph.put(4, Arrays.asList()); // Uncomment to test disconnected graph
+
+        System.out.println("Is Connected (BFS)? " + isConnectedBFS(graph));
+        System.out.println("Is Connected (DFS)? " + isConnectedDFS(graph));
+    }
+
+    // BFS approach
+    public static boolean isConnectedBFS(Map<Integer, List<Integer>> graph) {
+        if (graph.isEmpty()) return true;
+
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> queue = new LinkedList<>();
+
+        int start = graph.keySet().iterator().next();
+        queue.add(start);
+        visited.add(start);
+
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            for (int neighbor : graph.getOrDefault(node, List.of())) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        return visited.size() == graph.size();
+    }
+
+    // DFS approach
+    public static boolean isConnectedDFS(Map<Integer, List<Integer>> graph) {
+        if (graph.isEmpty()) return true;
+
+        Set<Integer> visited = new HashSet<>();
+        int start = graph.keySet().iterator().next();
+
+        dfs(start, graph, visited);
+
+        return visited.size() == graph.size();
+    }
+
+    private static void dfs(int node, Map<Integer, List<Integer>> graph, Set<Integer> visited) {
+        visited.add(node);
+        for (int neighbor : graph.getOrDefault(node, List.of())) {
+            if (!visited.contains(neighbor)) {
+                dfs(neighbor, graph, visited);
+            }
+        }
+    }
+}
+
+
+
+public class MergeSort {
+
+    public static void main(String[] args) {
+        int[] array = {38, 27, 43, 3, 9, 82, 10};
+        mergeSort(array, 0, array.length - 1);
+        for (int value : array)
+            System.out.print(value + " ");
+    }
+
+    public static void mergeSort(int[] array, int left, int right) {
+        if (left < right) {
+            int mid = (left + right) / 2;
+            mergeSort(array, left, mid);
+            mergeSort(array, mid + 1, right);
+            merge(array, left, mid, right);
+        }
+    }
+
+    public static void merge(int[] array, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        for (int i = 0; i < n1; i++) L[i] = array[left + i];
+        for (int j = 0; j < n2; j++) R[j] = array[mid + 1 + j];
+        int i = 0, j = 0, k = left;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) array[k++] = L[i++];
+            else array[k++] = R[j++];
+        }
+        while (i < n1) array[k++] = L[i++];
+        while (j < n2) array[k++] = R[j++];
+    }
+}
+
+
+import java.util.*;
+
+public class PathExistence {
+
+    static boolean bfs(Map<Integer, List<Integer>> graph, int src, int dest) {
+        Queue<Integer> q = new LinkedList<>();
+        Set<Integer> visited = new HashSet<>();
+        q.add(src); visited.add(src);
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            if (u == dest) return true;
+            for (int v : graph.getOrDefault(u, List.of())) {
+                if (visited.add(v)) q.add(v);
+            }
+        }
+        return false;
+    }
+
+    static boolean dfs(Map<Integer, List<Integer>> graph, int src, int dest, Set<Integer> visited) {
+        if (src == dest) return true;
+        visited.add(src);
+        for (int v : graph.getOrDefault(src, List.of())) {
+            if (!visited.contains(v) && dfs(graph, v, dest, visited)) return true;
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = Map.of(
+            0, List.of(1, 2),
+            1, List.of(2),
+            2, List.of(3),
+            3, List.of()
+        );
+
+        int src = 0, dest = 3;
+
+        System.out.println("BFS: Path exists? " + bfs(graph, src, dest));
+        System.out.println("DFS: Path exists? " + dfs(graph, src, dest, new HashSet<>()));
+    }
+}
+
+
+
+import java.util.*;
+public class Pathfromsrctodest {
+
+    public static void main(String[] args) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        graph.put(0, Arrays.asList(1, 2));
+        graph.put(1, Arrays.asList(0, 3));
+        graph.put(2, Arrays.asList(0, 3));
+        graph.put(3, Arrays.asList(1, 2, 4));
+        graph.put(4, Arrays.asList(3));
+
+        int src = 0;
+        int dest = 4;
+
+        List<Integer> path = new ArrayList<>();
+        Set<Integer> visited = new HashSet<>();
+
+        System.out.println("Paths from " + src + " to " + dest + ":");
+        findPaths(graph, src, dest, visited, path);
+    }
+
+    public static void findPaths(Map<Integer, List<Integer>> graph, int current, int dest,
+                                 Set<Integer> visited, List<Integer> path) {
+        visited.add(current);
+        path.add(current);
+
+        if (current == dest) {
+            System.out.println(path);
+        } else {
+            for (int neighbor : graph.getOrDefault(current, new ArrayList<>())) {
+                if (!visited.contains(neighbor)) {
+                    findPaths(graph, neighbor, dest, visited, path);
+                }
+            }
+        }
+
+        visited.remove(current);
+        path.remove(path.size() - 1);
+    }
+}
+
+
+public class Quicksort{
+
+    public static void main(String[] args) {
+        int[] array = {38, 27, 43, 3, 9, 82, 10};
+        quickSort(array, 0, array.length - 1);
+        for (int value : array)
+            System.out.print(value + " ");
+    }
+
+    public static void quickSort(int[] array, int low, int high) {
+        if (low < high) {
+            int pivotIndex = partition(array, low, high);
+            quickSort(array, low, pivotIndex - 1);
+            quickSort(array, pivotIndex + 1, high);
+        }
+    }
+
+    public static int partition(int[] array, int low, int high) {
+        int pivot = array[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (array[j] < pivot) {
+                i++;
+                int temp = array[i]; array[i] = array[j]; array[j] = temp;
+            }
+        }
+        int temp = array[i + 1]; array[i + 1] = array[high]; array[high] = temp;
+        return i + 1;
+    }
+}
+
+
+import java.util.*;
+
+public class RabinKarp {
+    static final int d = 256, q = 101; // d = alphabet size, q = prime
+
+    static List<Integer> search(String pat, String txt) {
+        int m = pat.length(), n = txt.length();
+        int p = 0, t = 0, h = 1;
+        List<Integer> result = new ArrayList<>();
+
+        for (int i = 0; i < m - 1; i++) h = (h * d) % q;
+
+        for (int i = 0; i < m; i++) {
+            p = (d * p + pat.charAt(i)) % q;
+            t = (d * t + txt.charAt(i)) % q;
+        }
+
+        for (int i = 0; i <= n - m; i++) {
+            if (p == t) {
+                if (txt.substring(i, i + m).equals(pat)) result.add(i);
+            }
+            if (i < n - m) {
+                t = (d * (t - txt.charAt(i) * h) + txt.charAt(i + m)) % q;
+                if (t < 0) t += q;
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        String txt = "abracadabra";
+        String pat = "abra";
+        List<Integer> positions = search(pat, txt);
+        System.out.println("Pattern found at indices: " + positions);
+    }
+}
+
+
+
+
+
+
+
+
+
